@@ -9,13 +9,14 @@ import { DisputesService } from './services/disputes.service';
 import { Dispute } from './entities/dispute.entity';
 import { ProjectNotFoundException } from '../../common/exceptions/project-not-found.exception';
 import { DisputeAlreadyExistsException } from '../../common/exceptions/dispute-already-exists.exception';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 
 /**
  * Mock da Autenticação (Guard) para os testes E2E.
  * Simula a presença de um usuário autenticado no request context com base nos headers da requisição.
  */
 @Injectable()
-export class JwtAuthGuard implements CanActivate {
+export class MockAuthGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
     const userId = request.headers['x-user-id'];
@@ -70,7 +71,7 @@ describe('Disputes E2E (POST /projetos/:id/disputas)', () => {
       .useValue(mockDisputesService)
       // Substitui o Guard de Autenticação real pelo MockAuthGuard nos testes
       .overrideGuard(JwtAuthGuard)
-      .useClass(JwtAuthGuard)
+      .useClass(MockAuthGuard)
       .compile();
 
     app = moduleFixture.createNestApplication();
@@ -86,7 +87,7 @@ describe('Disputes E2E (POST /projetos/:id/disputas)', () => {
   });
 
   describe('POST /projetos/:id/disputas', () => {
-    const projectId = 'project-123-abc';
+    const projectId = '7f80db45-7975-4c6c-829d-9f4a6ebf9629';
     const disputePayload = {
       reason: 'O escopo acordado não foi entregue conforme o planejado pelo freelancer.',
     };
@@ -163,7 +164,7 @@ describe('Disputes E2E (POST /projetos/:id/disputas)', () => {
       mockDisputesService.createDispute.mockRejectedValue(new ProjectNotFoundException());
 
       const response = await request(app.getHttpServer())
-        .post('/projetos/non-existent-id/disputas')
+        .post('/projetos/00000000-0000-0000-0000-000000000000/disputas')
         .set('x-user-id', 'client-abc')
         .set('x-user-role', 'CLIENT')
         .send(disputePayload);

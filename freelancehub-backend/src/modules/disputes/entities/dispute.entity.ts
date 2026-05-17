@@ -1,5 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index } from 'typeorm';
 import { DisputeStatusEnum } from '../../../common/enums/dispute-status.enum';
+import { DisputeReason } from './value-objects/dispute-reason.value-object';
+import { DisputeStatus } from './value-objects/dispute-status.value-object';
 
 export interface DomainEvent {
   dateTimeOccurred: Date;
@@ -50,7 +52,11 @@ export class Dispute {
   static create(projectId: string, reason: string): Dispute {
     const dispute = new Dispute();
     dispute.projectId = projectId;
-    dispute.reason = reason;
+    
+    // Encapsulate and validate the reason using the DisputeReason Value Object
+    const disputeReason = new DisputeReason(reason);
+    dispute.reason = disputeReason.getValue();
+    
     dispute.openDispute();
     return dispute;
   }
@@ -63,4 +69,13 @@ export class Dispute {
     }
     this._domainEvents.push(new DisputeOpenedEvent(this.projectId, this.reason));
   }
+
+  get disputeReason(): DisputeReason {
+    return new DisputeReason(this.reason);
+  }
+
+  get disputeStatus(): DisputeStatus {
+    return new DisputeStatus(this.status);
+  }
 }
+

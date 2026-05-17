@@ -1,12 +1,11 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { Dispute } from '../entities/dispute.entity';
-import { UnauthorizedDisputeException } from '../../../common/exceptions/unauthorized-dispute.exception';
-import { ProjectCancelledException } from '../../../common/exceptions/project-cancelled.exception';
+import { Project } from '../entities/project.domain';
 import { ProjectNotFoundException } from '../../../common/exceptions/project-not-found.exception';
 import { DisputeAlreadyExistsException } from '../../../common/exceptions/dispute-already-exists.exception';
 
-export interface OpenDisputeDto {
+export interface OpenDisputeCommand {
   projectId: string;
   userId: string;
   reason: string;
@@ -54,25 +53,29 @@ export class OpenDisputeService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async execute(dto: OpenDisputeDto): Promise<Dispute> {
+  async execute(command: OpenDisputeCommand): Promise<Dispute> {
     // 1. Buscar Projeto pelo ID utilizando o repositório
-    const project = await this.projectsRepository.findById(dto.projectId);
-    if (!project) {
+    const projectData = await this.projectsRepository.findById(command.projectId);
+    if (!projectData) {
       throw new ProjectNotFoundException();
     }
 
+    // Instanciar o modelo de domínio do Projeto
+    const project = new Project(
+      projectData.id,
+      projectData.clientId,
+      projectData.freelancerId,
+      projectData.status,
+    );
+
     // 2. Estado do Projeto (Se cancelado, lança exceção customizada de domínio)
-    if (project.status === 'CANCELLED' || project.status === 'Cancelado') {
-      throw new ProjectCancelledException();
-    }
+    project.checkDisputeEligibility();
 
     // 3. Validar Permissões (Somente o Cliente ou o Freelancer associados ao projeto podem abrir disputa)
-    if (dto.userId !== project.clientId && dto.userId !== project.freelancerId) {
-      throw new UnauthorizedDisputeException();
-    }
+    project.checkUserAuthorization(command.userId);
 
     // 4. Verificar se já existe uma disputa para este projeto (Regra da UC13.2)
-    const existingDispute = await this.disputesRepository.findByProjectId(dto.projectId);
+    const existingDispute = await this.disputesRepository.findByProjectId(command.projectId);
     if (existingDispute) {
       throw new DisputeAlreadyExistsException();
     }
@@ -82,7 +85,7 @@ export class OpenDisputeService {
     // 5. Executar fluxo de persistência de forma transacional usando o DataSource do TypeORM
     await this.dataSource.transaction(async (entityManager) => {
       // Instanciar a Entidade Disputa
-      const dispute = Dispute.create(dto.projectId, dto.reason);
+      const dispute = Dispute.create(command.projectId, command.reason);
 
       // Persistir no banco de dados dentro do escopo transacional
       try {
@@ -102,7 +105,7 @@ export class OpenDisputeService {
       }
 
       // 6. Bloquear fluxo de pagamento associado chamando o serviço de pagamentos
-      await this.paymentService.blockPayment(dto.projectId);
+      await this.paymentService.blockPayment(command.projectId);
     });
 
     const occurredAt = new Date();
@@ -111,7 +114,7 @@ export class OpenDisputeService {
     this.eventEmitter.emit('DisputaAberta', {
       disputeId: savedDispute!.id,
       projectId: savedDispute!.projectId,
-      userId: dto.userId,
+      userId: command.userId,
       reason: savedDispute!.reason,
       occurredAt,
     });
@@ -120,7 +123,7 @@ export class OpenDisputeService {
     this.eventEmitter.emit('PagamentoBloqueado', {
       disputeId: savedDispute!.id,
       projectId: savedDispute!.projectId,
-      userId: dto.userId,
+      userId: command.userId,
       status: 'BLOQUEADO',
       occurredAt,
     });

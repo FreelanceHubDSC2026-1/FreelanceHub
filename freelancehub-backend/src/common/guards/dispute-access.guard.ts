@@ -1,8 +1,8 @@
-import { Injectable, CanActivate, ExecutionContext, Inject, ForbiddenException } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, Inject } from '@nestjs/common';
 import { DisputesRepository, ProjectsRepository } from '../../modules/disputes/services/open-dispute.service';
+import { Project } from '../../modules/disputes/entities/project.domain';
 import { DisputeNotFoundException } from '../exceptions/dispute-not-found.exception';
 import { ProjectNotFoundException } from '../exceptions/project-not-found.exception';
-import { UnauthorizedDisputeException } from '../exceptions/unauthorized-dispute.exception';
 
 /**
  * Guard de Autorização ABAC (Attribute-Based Access Control) para consulta de disputas.
@@ -47,17 +47,20 @@ export class DisputeAccessGuard implements CanActivate {
     }
 
     // 4. Busca o projeto correspondente à disputa. Lança 404 se não existir
-    const project = await this.projectsRepository.findById(dispute.projectId);
-    if (!project) {
+    const projectData = await this.projectsRepository.findById(dispute.projectId);
+    if (!projectData) {
       throw new ProjectNotFoundException();
     }
 
-    // 5. Valida se o usuário é participante direto do projeto
-    const isParticipant = user.id === project.clientId || user.id === project.freelancerId;
-    if (!isParticipant) {
-      // Retorna 403 Forbidden lançando a exceção de negócio correspondente (mapeada no filtro)
-      throw new UnauthorizedDisputeException();
-    }
+    const project = new Project(
+      projectData.id,
+      projectData.clientId,
+      projectData.freelancerId,
+      projectData.status,
+    );
+
+    // 5. Valida se o usuário é participante direto do projeto (Lança UnauthorizedDisputeException se não for)
+    project.checkUserAuthorization(user.id);
 
     return true;
   }

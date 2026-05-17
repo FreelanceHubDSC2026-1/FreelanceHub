@@ -25,6 +25,7 @@ export interface ProjectsRepository {
 export interface DisputesRepository {
   save(dispute: Dispute): Promise<Dispute>;
   findByProjectId(projectId: string): Promise<Dispute | null>;
+  findById(id: string): Promise<Dispute | null>;
 }
 
 export interface EventEmitter {

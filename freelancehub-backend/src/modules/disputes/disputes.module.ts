@@ -5,6 +5,8 @@ import { DisputesTypeOrmRepository } from './repositories/disputes.typeorm.repos
 import { DisputesService, DISPUTES_REPOSITORY } from './services/disputes.service';
 import { OpenDisputeService } from './services/open-dispute.service';
 import { DisputesController } from './controllers/disputes.controller';
+import { DisputesQueryController } from './controllers/disputes-query.controller';
+import { GetDisputeService } from './services/get-dispute.service';
 
 @Module({
   imports: [
@@ -12,10 +14,12 @@ import { DisputesController } from './controllers/disputes.controller';
   ],
   controllers: [
     DisputesController,
+    DisputesQueryController,
   ],
   providers: [
     DisputesService,
     OpenDisputeService,
+    GetDisputeService,
     {
       provide: DISPUTES_REPOSITORY,
       useClass: DisputesTypeOrmRepository,
@@ -25,6 +29,7 @@ import { DisputesController } from './controllers/disputes.controller';
     DISPUTES_REPOSITORY,
     DisputesService,
     OpenDisputeService,
+    GetDisputeService,
   ],
 })
 export class DisputesModule {}

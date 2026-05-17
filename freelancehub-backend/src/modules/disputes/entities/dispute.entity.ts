@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index } from 'typeorm';
 import { DisputeStatusEnum } from '../../../common/enums/dispute-status.enum';
 
 export interface DomainEvent {
@@ -17,6 +17,7 @@ export class Dispute {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Index({ unique: true })
   @Column({ type: 'varchar' })
   projectId: string;
 

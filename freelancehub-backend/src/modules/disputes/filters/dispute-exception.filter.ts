@@ -4,6 +4,7 @@ import { UnauthorizedDisputeException } from '../../../common/exceptions/unautho
 import { ProjectNotFoundException } from '../../../common/exceptions/project-not-found.exception';
 import { DisputeAlreadyExistsException } from '../../../common/exceptions/dispute-already-exists.exception';
 import { ProjectCancelledException } from '../../../common/exceptions/project-cancelled.exception';
+import { DisputeNotFoundException } from '../../../common/exceptions/dispute-not-found.exception';
 
 /**
  * Filtro de Exceções especializado para o domínio de Disputas.
@@ -23,6 +24,9 @@ export class DisputeExceptionFilter implements ExceptionFilter {
       status = HttpStatus.FORBIDDEN; // 403
       message = exception.message;
     } else if (exception instanceof ProjectNotFoundException) {
+      status = HttpStatus.NOT_FOUND; // 404
+      message = exception.message;
+    } else if (exception instanceof DisputeNotFoundException) {
       status = HttpStatus.NOT_FOUND; // 404
       message = exception.message;
     } else if (exception instanceof DisputeAlreadyExistsException) {

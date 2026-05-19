@@ -10,6 +10,7 @@ import { Dispute } from './entities/dispute.entity';
 import { ProjectNotFoundException } from '../../common/exceptions/project-not-found.exception';
 import { DisputeAlreadyExistsException } from '../../common/exceptions/dispute-already-exists.exception';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { DisputeAccessGuard } from '../../common/guards/dispute-access.guard';
 
 /**
  * Mock da Autenticação (Guard) para os testes E2E.
@@ -72,6 +73,9 @@ describe('Disputes E2E (POST /projetos/:id/disputas)', () => {
       // Substitui o Guard de Autenticação real pelo MockAuthGuard nos testes
       .overrideGuard(JwtAuthGuard)
       .useClass(MockAuthGuard)
+      // Substitui o Guard de Autorização DisputeAccessGuard por um mock permissivo nos testes antigos
+      .overrideGuard(DisputeAccessGuard)
+      .useValue({ canActivate: () => true })
       .compile();
 
     app = moduleFixture.createNestApplication();

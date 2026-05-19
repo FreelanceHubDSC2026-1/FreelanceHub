@@ -47,6 +47,15 @@ export class DisputesTypeOrmRepository implements DisputesRepository {
   }
 
   /**
+   * Busca uma disputa pelo seu ID único.
+   */
+  async findById(id: string): Promise<Dispute | null> {
+    return await this.repository.findOne({
+      where: { id },
+    });
+  }
+
+  /**
    * Lista todas as disputas que possuem o status 'ABERTA'.
    */
   async findOpenDisputes(): Promise<Dispute[]> {

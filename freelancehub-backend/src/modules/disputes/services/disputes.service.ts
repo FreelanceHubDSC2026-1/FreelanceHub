@@ -1,12 +1,12 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Dispute } from '../entities/dispute.entity';
-import { ProjectAlreadyCompletedException } from '../../../common/exceptions/project-already-completed.exception';
+import { Project } from '../entities/project.domain';
 import { DisputeAlreadyExistsException } from '../../../common/exceptions/dispute-already-exists.exception';
 
 export const DISPUTES_REPOSITORY = 'DISPUTES_REPOSITORY';
 export const PROJECTS_REPOSITORY = 'PROJECTS_REPOSITORY';
 
-export interface CreateDisputeDto {
+export interface CreateDisputeCommand {
   projectId: string;
   reason: string;
 }
@@ -20,19 +20,25 @@ export class DisputesService {
     private readonly projectsRepository: any,
   ) {}
 
-  async createDispute(dto: CreateDisputeDto): Promise<Dispute> {
-    const project = await this.projectsRepository.findById(dto.projectId);
+  async createDispute(command: CreateDisputeCommand): Promise<Dispute> {
+    const projectData = await this.projectsRepository.findById(command.projectId);
     
-    if (project && project.status === 'COMPLETED') {
-      throw new ProjectAlreadyCompletedException();
+    if (projectData) {
+      const project = new Project(
+        projectData.id,
+        projectData.clientId,
+        projectData.freelancerId,
+        projectData.status,
+      );
+      project.checkDisputeEligibility();
     }
 
-    const existingDispute = await this.disputesRepository.findByProjectId(dto.projectId);
+    const existingDispute = await this.disputesRepository.findByProjectId(command.projectId);
     if (existingDispute) {
       throw new DisputeAlreadyExistsException();
     }
 
-    const dispute = Dispute.create(dto.projectId, dto.reason);
+    const dispute = Dispute.create(command.projectId, command.reason);
 
     return this.disputesRepository.save(dispute);
   }

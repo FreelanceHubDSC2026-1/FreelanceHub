@@ -5,6 +5,7 @@ import { ProjectNotFoundException } from '../../../common/exceptions/project-not
 import { DisputeAlreadyExistsException } from '../../../common/exceptions/dispute-already-exists.exception';
 import { ProjectCancelledException } from '../../../common/exceptions/project-cancelled.exception';
 import { DisputeNotFoundException } from '../../../common/exceptions/dispute-not-found.exception';
+import { InvalidDisputeReasonException } from '../../../common/exceptions/invalid-dispute-reason.exception';
 
 /**
  * Filtro de Exceções especializado para o domínio de Disputas.
@@ -34,6 +35,9 @@ export class DisputeExceptionFilter implements ExceptionFilter {
       message = exception.message;
     } else if (exception instanceof ProjectCancelledException) {
       status = HttpStatus.CONFLICT; // 409 (conforme especificação da UC13.8)
+      message = exception.message;
+    } else if (exception instanceof InvalidDisputeReasonException) {
+      status = HttpStatus.BAD_REQUEST; // 400
       message = exception.message;
     } else if (exception instanceof HttpException) {
       // Outras exceções HTTP nativas do NestJS

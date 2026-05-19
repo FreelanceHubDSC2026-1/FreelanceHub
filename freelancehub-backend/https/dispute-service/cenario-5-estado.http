@@ -1,0 +1,16 @@
+@baseUrl = http://localhost:3002
+@cancelledProjectId = 9c90db45-7975-4c6c-829d-9f4a6ebf9629
+
+# ==============================================================================
+# Cenário 5 (Fase Red/Erro - Regra de Estado)
+# Projeto já se encontra com status 'Cancelado'.
+# Retorno esperado: HTTP 409 Conflict (ou HTTP 400 Bad Request).
+# ==============================================================================
+POST {{baseUrl}}/projetos/{{cancelledProjectId}}/disputas
+x-user-id: client-participant-111
+x-user-role: CLIENT
+Content-Type: application/json
+
+{
+  "reason": "Tentativa de abrir disputa em um projeto previamente cancelado."
+}

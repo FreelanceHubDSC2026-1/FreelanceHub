@@ -1,16 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Dispute } from '../entities/dispute.entity';
-import { DisputeStatusEnum } from '../../../common/enums/dispute-status.enum';
+import { DisputeEntity } from '../entities/dispute.entity';
 import { DisputeAlreadyExistsException } from '../../../common/exceptions/dispute-already-exists.exception';
-import { DisputesRepository } from '../services/open-dispute.service';
+import { DisputesRepository } from './disputes.repository.interface';
 
 @Injectable()
 export class DisputesTypeOrmRepository implements DisputesRepository {
   constructor(
-    @InjectRepository(Dispute)
-    private readonly repository: Repository<Dispute>,
+    @InjectRepository(DisputeEntity)
+    private readonly repository: Repository<DisputeEntity>,
   ) {}
 
   /**
@@ -18,7 +17,7 @@ export class DisputesTypeOrmRepository implements DisputesRepository {
    * Lida com violações de restrição de índice único do PostgreSQL (Unique Constraint)
    * mapeando o erro para a exceção de domínio correspondente.
    */
-  async save(dispute: Dispute): Promise<Dispute> {
+  async save(dispute: DisputeEntity): Promise<DisputeEntity> {
     try {
       return await this.repository.save(dispute);
     } catch (error: any) {
@@ -40,7 +39,7 @@ export class DisputesTypeOrmRepository implements DisputesRepository {
   /**
    * Busca uma disputa pelo ID do projeto associado.
    */
-  async findByProjectId(projectId: string): Promise<Dispute | null> {
+  async findByProjectId(projectId: string): Promise<DisputeEntity | null> {
     return await this.repository.findOne({
       where: { projectId },
     });
@@ -49,18 +48,9 @@ export class DisputesTypeOrmRepository implements DisputesRepository {
   /**
    * Busca uma disputa pelo seu ID único.
    */
-  async findById(id: string): Promise<Dispute | null> {
+  async findById(id: string): Promise<DisputeEntity | null> {
     return await this.repository.findOne({
       where: { id },
-    });
-  }
-
-  /**
-   * Lista todas as disputas que possuem o status 'ABERTA'.
-   */
-  async findOpenDisputes(): Promise<Dispute[]> {
-    return await this.repository.find({
-      where: { status: DisputeStatusEnum.ABERTA },
     });
   }
 }

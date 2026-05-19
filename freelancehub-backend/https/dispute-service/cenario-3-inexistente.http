@@ -1,0 +1,16 @@
+@baseUrl = http://localhost:3002
+@nonExistentProjectId = 00000000-0000-0000-0000-000000000000
+
+# ==============================================================================
+# Cenário 3 (Fase Red/Erro - Recurso Inexistente)
+# ID do projeto não é localizado no sistema.
+# Retorno esperado: HTTP 404 Not Found.
+# ==============================================================================
+POST {{baseUrl}}/projetos/{{nonExistentProjectId}}/disputas
+x-user-id: client-participant-111
+x-user-role: CLIENT
+Content-Type: application/json
+
+{
+  "reason": "Abertura de disputa para um projeto inexistente."
+}

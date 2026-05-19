@@ -10,7 +10,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { OpenDisputeService } from '../services/open-dispute.service';
+import { DisputesService } from '../services/disputes.service';
 import { CreateDisputeDto } from '../dto/create-dispute.dto';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { DisputeExceptionFilter } from '../filters/dispute-exception.filter';
@@ -22,7 +22,7 @@ import { DisputeExceptionFilter } from '../filters/dispute-exception.filter';
 @Controller('projetos')
 @UseFilters(DisputeExceptionFilter)
 export class DisputesController {
-  constructor(private readonly openDisputeService: OpenDisputeService) {}
+  constructor(private readonly disputesService: DisputesService) {}
 
   /**
    * Endpoint de abertura de disputa para um determinado projeto.
@@ -39,8 +39,8 @@ export class DisputesController {
     // Recupera o ID do usuário autenticado a partir do request context injetado pelo Guard
     const userId = req.user.id;
 
-    // Executa o caso de uso (Application Service) de abertura de disputa
-    return await this.openDisputeService.execute({
+    // Executa o caso de uso de abertura de disputa
+    return await this.disputesService.createDispute({
       projectId,
       userId,
       reason: createDisputeDto.reason,

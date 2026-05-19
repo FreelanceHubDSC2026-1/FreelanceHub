@@ -1,7 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index, ManyToOne, JoinColumn } from 'typeorm';
 import { DisputeStatusEnum } from '../../../common/enums/dispute-status.enum';
 import { DisputeReason } from './value-objects/dispute-reason.value-object';
 import { DisputeStatus } from './value-objects/dispute-status.value-object';
+import { ProjectEntity } from './project.entity';
 
 export interface DomainEvent {
   dateTimeOccurred: Date;
@@ -15,13 +16,17 @@ export class DisputeOpenedEvent implements DomainEvent {
 }
 
 @Entity('disputes')
-export class Dispute {
+export class DisputeEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Index({ unique: true })
   @Column({ type: 'varchar' })
   projectId: string;
+
+  @ManyToOne(() => ProjectEntity, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'projectId' })
+  project: ProjectEntity;
 
   @Column({ type: 'text' })
   reason: string;
@@ -49,8 +54,8 @@ export class Dispute {
     this._domainEvents = [];
   }
 
-  static create(projectId: string, reason: string): Dispute {
-    const dispute = new Dispute();
+  static create(projectId: string, reason: string): DisputeEntity {
+    const dispute = new DisputeEntity();
     dispute.projectId = projectId;
     
     // Encapsulate and validate the reason using the DisputeReason Value Object
@@ -78,4 +83,3 @@ export class Dispute {
     return new DisputeStatus(this.status);
   }
 }
-

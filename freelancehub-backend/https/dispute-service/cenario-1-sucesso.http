@@ -1,0 +1,16 @@
+@baseUrl = http://localhost:3002
+@eligibleProjectId = 7f80db45-7975-4c6c-829d-9f4a6ebf9629
+
+# ==============================================================================
+# Cenário 1 (Fase Green - Sucesso)
+# Cliente ou Freelancer vinculado ao projeto envia payload correto.
+# Retorno esperado: HTTP 201 Created com a persistência e bloqueio de pagamento.
+# ==============================================================================
+POST {{baseUrl}}/projetos/{{eligibleProjectId}}/disputas
+x-user-id: client-participant-111
+x-user-role: CLIENT
+Content-Type: application/json
+
+{
+  "reason": "O escopo acordado não foi entregue conforme o planejado pelo freelancer."
+}

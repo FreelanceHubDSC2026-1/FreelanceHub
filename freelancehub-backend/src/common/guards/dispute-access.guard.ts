@@ -1,5 +1,6 @@
 import { Injectable, CanActivate, ExecutionContext, Inject } from '@nestjs/common';
-import { DisputesRepository, ProjectsRepository } from '../../modules/disputes/services/open-dispute.service';
+import { DISPUTES_REPOSITORY, DisputesRepository } from '../../modules/disputes/repositories/disputes.repository.interface';
+import { PROJECTS_REPOSITORY, ProjectsRepository } from '../../modules/disputes/repositories/projects.repository.interface';
 import { Project } from '../../modules/disputes/entities/project.domain';
 import { DisputeNotFoundException } from '../exceptions/dispute-not-found.exception';
 import { ProjectNotFoundException } from '../exceptions/project-not-found.exception';
@@ -13,10 +14,10 @@ import { ProjectNotFoundException } from '../exceptions/project-not-found.except
 @Injectable()
 export class DisputeAccessGuard implements CanActivate {
   constructor(
-    @Inject('DISPUTES_REPOSITORY')
+    @Inject(DISPUTES_REPOSITORY)
     private readonly disputesRepository: DisputesRepository,
     
-    @Inject('PROJECTS_REPOSITORY')
+    @Inject(PROJECTS_REPOSITORY)
     private readonly projectsRepository: ProjectsRepository,
   ) {}
 

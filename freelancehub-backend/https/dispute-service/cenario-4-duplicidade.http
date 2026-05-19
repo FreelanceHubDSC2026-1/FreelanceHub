@@ -1,0 +1,16 @@
+@baseUrl = http://localhost:3002
+@eligibleProjectId = 7f80db45-7975-4c6c-829d-9f4a6ebf9629
+
+# ==============================================================================
+# Cenário 4 (Fase Red/Erro - Integridade/Duplicidade)
+# Tentativa de abrir uma segunda disputa em um projeto com disputa ativa.
+# Retorno esperado: HTTP 409 Conflict.
+# ==============================================================================
+POST {{baseUrl}}/projetos/{{eligibleProjectId}}/disputas
+x-user-id: client-participant-111
+x-user-role: CLIENT
+Content-Type: application/json
+
+{
+  "reason": "Tentativa de duplicidade - segunda disputa no mesmo projeto ativo."
+}

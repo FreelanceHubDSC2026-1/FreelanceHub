@@ -1,0 +1,16 @@
+@baseUrl = http://localhost:3002
+@eligibleProjectId = 7f80db45-7975-4c6c-829d-9f4a6ebf9629
+
+# ==============================================================================
+# Cenário 2 (Fase Red/Erro - Segurança/Autorização)
+# Usuário externo autenticado (não faz parte do projeto) tenta abrir disputa.
+# Retorno esperado: HTTP 403 Forbidden.
+# ==============================================================================
+POST {{baseUrl}}/projetos/{{eligibleProjectId}}/disputas
+x-user-id: external-user-777
+x-user-role: CLIENT
+Content-Type: application/json
+
+{
+  "reason": "Tentativa maliciosa de abrir disputa em projeto alheio."
+}

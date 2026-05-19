@@ -21,9 +21,9 @@ describe('DisputesTypeOrmRepository (Integration - RED Phase)', () => {
           type: 'postgres',
           host: process.env.DB_HOST_TEST || 'localhost',
           port: Number(process.env.DB_PORT_TEST) || 5432,
-          username: process.env.DB_USERNAME_TEST || 'postgres',
-          password: process.env.DB_PASSWORD_TEST || 'postgres',
-          database: process.env.DB_DATABASE_TEST || 'freelancehub_test',
+          username: process.env.DB_USERNAME_TEST || 'FreelanceHub',
+          password: process.env.DB_PASSWORD_TEST || 'example_password',
+          database: process.env.DB_DATABASE_TEST || 'FreelanceHub_db',
           entities: [Dispute],
           synchronize: true, // Cria e atualiza tabelas automaticamente no banco isolado de teste
           dropSchema: true,  // Limpa todo o esquema do banco antes do carregamento dos testes

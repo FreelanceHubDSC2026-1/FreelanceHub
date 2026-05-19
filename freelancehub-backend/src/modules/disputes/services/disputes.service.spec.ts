@@ -46,7 +46,7 @@ describe('DisputesService (Domain Rules)', () => {
       // Setup: Projeto válido e sem disputas abertas
       mockProjectsRepository.findById.mockResolvedValue({ id: 'project-1', status: 'IN_PROGRESS' });
       mockDisputesRepository.findByProjectId.mockResolvedValue(null);
-      mockDisputesRepository.save.mockImplementation((dispute) => Promise.resolve({ ...dispute, id: 'dispute-1' }));
+      mockDisputesRepository.save.mockImplementation((dispute: any) => Promise.resolve({ ...dispute, id: 'dispute-1' }));
 
       const result = await service.createDispute({
         projectId: 'project-1',
@@ -60,7 +60,7 @@ describe('DisputesService (Domain Rules)', () => {
     it('Deve registrar a data de criação (createdAt instanciado)', async () => {
       mockProjectsRepository.findById.mockResolvedValue({ id: 'project-1', status: 'IN_PROGRESS' });
       mockDisputesRepository.findByProjectId.mockResolvedValue(null);
-      mockDisputesRepository.save.mockImplementation((dispute) => Promise.resolve({ ...dispute, id: 'dispute-2' }));
+      mockDisputesRepository.save.mockImplementation((dispute: any) => Promise.resolve({ ...dispute, id: 'dispute-2' }));
 
       const result = await service.createDispute({
         projectId: 'project-1',
@@ -100,7 +100,7 @@ describe('DisputesService (Domain Rules)', () => {
       mockDisputesRepository.findByProjectId.mockResolvedValue(null);
 
       let savedDispute: any;
-      mockDisputesRepository.save.mockImplementation((dispute) => {
+      mockDisputesRepository.save.mockImplementation((dispute: any) => {
         savedDispute = dispute;
         return Promise.resolve({ ...dispute, id: 'dispute-3' });
       });

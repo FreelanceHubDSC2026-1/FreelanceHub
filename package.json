@@ -1,4 +1,13 @@
 {
+  "name": "freelancehub-backend",
+  "version": "1.0.0",
+  "description": "FreelanceHub Backend",
+  "scripts": {
+    "build": "tsc -p freelancehub-backend/tsconfig.json",
+    "start": "node freelancehub-backend/dist/main.js",
+    "start:dev": "ts-node freelancehub-backend/src/main.ts",
+    "start:prod": "node freelancehub-backend/dist/main.js"
+  },
   "dependencies": {
     "@nestjs/common": "^11.1.21",
     "@nestjs/config": "^4.0.4",
@@ -15,11 +24,7 @@
     "typescript": "^6.0.3"
   },
   "devDependencies": {
-    "@nestjs/testing": "^11.1.21",
-    "@types/jest": "^30.0.0",
-    "@types/supertest": "^7.2.0",
-    "jest": "^30.4.2",
-    "supertest": "^7.2.2",
-    "ts-jest": "^29.4.9"
+    "@types/express": "^5.0.6",
+    "ts-node": "^10.9.2"
   }
 }

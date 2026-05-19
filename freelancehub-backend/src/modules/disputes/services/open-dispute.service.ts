@@ -1,4 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
+import { DataSource } from 'typeorm';
 import { Dispute } from '../entities/dispute.entity';
 import { UnauthorizedDisputeException } from '../../../common/exceptions/unauthorized-dispute.exception';
 import { ProjectCancelledException } from '../../../common/exceptions/project-cancelled.exception';
@@ -27,7 +28,7 @@ export interface DisputesRepository {
 }
 
 export interface EventEmitter {
-  emit(event: string, data: { projectId: string; reason: string }): void;
+  emit(event: string, data: any): void;
 }
 
 export interface PaymentService {
@@ -48,6 +49,8 @@ export class OpenDisputeService {
     
     @Inject('PAYMENT_SERVICE')
     private readonly paymentService: PaymentService,
+
+    private readonly dataSource: DataSource,
   ) {}
 
   async execute(dto: OpenDisputeDto): Promise<Dispute> {
@@ -73,19 +76,54 @@ export class OpenDisputeService {
       throw new DisputeAlreadyExistsException();
     }
 
-    // 5. Instanciar e persistir a Entidade Disputa
-    const dispute = Dispute.create(dto.projectId, dto.reason);
-    const savedDispute = await this.disputesRepository.save(dispute);
+    let savedDispute: Dispute;
 
-    // 6. Bloquear fluxo de pagamento associado chamando o serviço de pagamentos
-    await this.paymentService.blockPayment(dto.projectId);
+    // 5. Executar fluxo de persistência de forma transacional usando o DataSource do TypeORM
+    await this.dataSource.transaction(async (entityManager) => {
+      // Instanciar a Entidade Disputa
+      const dispute = Dispute.create(dto.projectId, dto.reason);
 
-    // 7. Publicar evento de domínio DisputaAberta
-    this.eventEmitter.emit('DisputaAberta', {
-      projectId: dispute.projectId,
-      reason: dispute.reason,
+      // Persistir no banco de dados dentro do escopo transacional
+      try {
+        savedDispute = await entityManager.save(Dispute, dispute);
+      } catch (error: any) {
+        // Mapeia violações de unicidade no banco de dados
+        const isUniqueViolation = 
+          error?.code === '23505' || 
+          error?.message?.includes('unique constraint') || 
+          error?.message?.includes('duplicate key') ||
+          error?.message?.includes('UNIQUE constraint failed');
+
+        if (isUniqueViolation) {
+          throw new DisputeAlreadyExistsException();
+        }
+        throw error;
+      }
+
+      // 6. Bloquear fluxo de pagamento associado chamando o serviço de pagamentos
+      await this.paymentService.blockPayment(dto.projectId);
     });
 
-    return savedDispute;
+    const occurredAt = new Date();
+
+    // 7. Publicar evento de domínio DisputaAberta (só após o sucesso do commit da transação)
+    this.eventEmitter.emit('DisputaAberta', {
+      disputeId: savedDispute!.id,
+      projectId: savedDispute!.projectId,
+      userId: dto.userId,
+      reason: savedDispute!.reason,
+      occurredAt,
+    });
+
+    // 8. Publicar evento de domínio PagamentoBloqueado (só após o sucesso do commit da transação)
+    this.eventEmitter.emit('PagamentoBloqueado', {
+      disputeId: savedDispute!.id,
+      projectId: savedDispute!.projectId,
+      userId: dto.userId,
+      status: 'BLOQUEADO',
+      occurredAt,
+    });
+
+    return savedDispute!;
   }
 }

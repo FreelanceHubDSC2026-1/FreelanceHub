@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { DataSource } from 'typeorm';
 import { OpenDisputeService } from './open-dispute.service';
 import { UnauthorizedDisputeException } from '../../../common/exceptions/unauthorized-dispute.exception';
 import { ProjectCancelledException } from '../../../common/exceptions/project-cancelled.exception';
@@ -49,6 +50,19 @@ describe('OpenDisputeService (UC13.3 - Abrir Disputa)', () => {
         {
           provide: PAYMENT_SERVICE,
           useValue: mockPaymentService,
+        },
+        {
+          provide: DataSource,
+          useValue: {
+            transaction: jest.fn().mockImplementation(async (cb) => {
+              return await cb({
+                save: jest.fn().mockImplementation((entityType, entity) => {
+                  const targetEntity = entity || entityType;
+                  return mockDisputesRepository.save(targetEntity);
+                }),
+              });
+            }),
+          },
         },
       ],
     }).compile();
